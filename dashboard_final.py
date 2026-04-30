@@ -149,46 +149,40 @@ st.sidebar.markdown("---")
 # Filtro por Ciudad
 if 'CIUDAD' in df.columns:
     ciudades = sorted(df['CIUDAD'].dropna().unique().tolist())
-    todas_ciudades = st.sidebar.checkbox("Todas las ciudades", value=True, key="todas_ciudades")
-    if todas_ciudades:
-        ciudades_seleccionadas = ciudades
-    else:
-        ciudades_seleccionadas = st.sidebar.multiselect("📍 Ciudad", ciudades)
+    ciudad_opciones = ['Todas'] + ciudades
+    ciudad_seleccionada = st.sidebar.selectbox("📍 Ciudad", ciudad_opciones, index=0)
+    ciudades_seleccionadas = ciudades if ciudad_seleccionada == 'Todas' else [ciudad_seleccionada]
 else:
     ciudades_seleccionadas = None
 
 # Filtro por Departamento
 if 'DEPARTAMENTO' in df.columns:
     departamentos = sorted(df['DEPARTAMENTO'].dropna().unique().tolist())
-    todos_departamentos = st.sidebar.checkbox("Todos los departamentos", value=True, key="todos_departamentos")
-    if todos_departamentos:
-        departamentos_seleccionados = departamentos
-    else:
-        departamentos_seleccionados = st.sidebar.multiselect("🗺️ Departamento", departamentos)
+    dep_opciones = ['Todos'] + departamentos
+    departamento_seleccionado = st.sidebar.selectbox("🗺️ Departamento", dep_opciones, index=0)
+    departamentos_seleccionados = departamentos if departamento_seleccionado == 'Todos' else [departamento_seleccionado]
 else:
     departamentos_seleccionados = None
 
 # Filtro por Consorcio
 if 'CONSORCIO' in df.columns:
     consorcios = sorted(df['CONSORCIO'].dropna().unique().tolist())
-    todos_consorcios = st.sidebar.checkbox("Todos los consorcios", value=True, key="todos_consorcios")
-    if todos_consorcios:
-        consorcios_seleccionados = consorcios
-    else:
-        consorcios_seleccionados = st.sidebar.multiselect("🏢 Consorcio", consorcios)
+    consorcio_opciones = ['Todos'] + consorcios
+    consorcio_seleccionado = st.sidebar.selectbox("🏢 Consorcio", consorcio_opciones, index=0)
+    consorcios_seleccionados = consorcios if consorcio_seleccionado == 'Todos' else [consorcio_seleccionado]
 else:
     consorcios_seleccionados = None
 
 # Aplicar filtros
 df_filtrado = df.copy()
 
-if ciudades_seleccionadas and 'CIUDAD' in df.columns:
+if ciudades_seleccionadas is not None and 'CIUDAD' in df.columns:
     df_filtrado = df_filtrado[df_filtrado['CIUDAD'].isin(ciudades_seleccionadas)]
 
-if departamentos_seleccionados and 'DEPARTAMENTO' in df.columns:
+if departamentos_seleccionados is not None and 'DEPARTAMENTO' in df.columns:
     df_filtrado = df_filtrado[df_filtrado['DEPARTAMENTO'].isin(departamentos_seleccionados)]
 
-if consorcios_seleccionados and 'CONSORCIO' in df.columns:
+if consorcios_seleccionados is not None and 'CONSORCIO' in df.columns:
     df_filtrado = df_filtrado[df_filtrado['CONSORCIO'].isin(consorcios_seleccionados)]
 
 # Mostrar información del filtrado
@@ -218,9 +212,9 @@ def calcular_indicadores(df):
 
 # ==================== MODELO DE PREDICCIÓN ====================
 @st.cache_data
-def entrenar_modelo_riesgo(_df):
+def entrenar_modelo_riesgo(df_input):
     """Entrena modelo ML para predecir riesgo de cierre de farmacias"""
-    df_modelo = _df.copy()
+    df_modelo = df_input.copy()
     
     # Crear target: RIESGO = Margen < 0 O (Margen < 2% Y Formulación muy baja)
     umbrales_bajo = df_modelo['Formulación'].quantile(0.25)
